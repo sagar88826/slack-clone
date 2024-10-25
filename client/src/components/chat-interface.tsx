@@ -52,9 +52,11 @@ export function ChatInterface() {
       nsChange: {},
       messageToRoom: {},
     };
+
     const onNsChange = (data: unknown) => {
       console.log("Namespace Changed", data);
     };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onMessageToRoom = (messageObj: any) => {
       console.log(messageObj);
@@ -63,6 +65,7 @@ export function ChatInterface() {
         messageObj.newMessage,
       ]);
     };
+
     /**
      * addListeners job is to manage all listeners added to all namespaces.
      * this prevents listeners being added multiples time and make life
@@ -72,18 +75,24 @@ export function ChatInterface() {
       if (!listeners.nsChange[id]) {
         listeners.nsChange[id] = true;
         console.log(listeners.nsChange[id]);
+
         if (!nsSocket[id]) throw new Error("Namespace socket does not exist");
+
         nsSocket[id].on("nsChange", onNsChange);
       }
+
       if (!listeners.messageToRoom[id]) {
         listeners.messageToRoom[id] = true;
+
         if (!nsSocket[id]) throw new Error("Namespace socket does not exist");
+
         nsSocket[id].on("messageToRoom", onMessageToRoom);
       }
     };
 
     const onNsList = (nsData: NameSpace[]) => {
       const nsDataProcessed = plainToInstance(NameSpace, nsData);
+
       nsDataProcessed.forEach((ns) => {
         if (!nsSocket[ns.id]) {
           // If the namespace socket does not exist, create a new one
@@ -91,13 +100,26 @@ export function ChatInterface() {
         }
         addListeners(String(ns.id));
       });
+
       setNsList(nsDataProcessed);
+
       setCurrentNamespace(nsDataProcessed[0]?.endpoint);
     };
+
     socket.on("nsList", onNsList);
+
+    socket.onAnyOutgoing((...args) => {
+      console.log("outgoing", args);
+    });
+
+    socket.onAny((...args) => {
+      console.log("incoming", args);
+    });
 
     return () => {
       socket.off("nsList", onNsList);
+      socket.offAny();
+      socket.offAnyOutgoing();
       Object.keys(nsSocket).forEach((id) => {
         nsSocket[id]?.off("messageToRoom", onMessageToRoom);
         nsSocket[id]?.off("nsChange", onNsChange);
@@ -118,8 +140,10 @@ export function ChatInterface() {
           minute: "2-digit",
         }),
       };
+
       // setMessages([...messages, newMessage]);
       const currentNs = nsList?.find((ns) => ns.endpoint === currentNamespace);
+
       if (currentNs) {
         const currentNsSocket = nsSocket[currentNs.id];
         if (currentNsSocket) {

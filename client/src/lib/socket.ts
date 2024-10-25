@@ -4,8 +4,14 @@ import { io } from "socket.io-client";
 const URL =
   import.meta.env.NODE_ENV === "production"
     ? undefined
-    : "http://localhost:8000";
+    : "http://localhost:5000";
 
 console.log("sagar");
 
-export const socket = io(URL, {});
+export const socket = io(URL, {
+  transports: ["websocket"],
+  auth: {
+    token:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJhciIsImlhdCI6MTcyODk3NDgzMCwiZXhwIjoxNzI5NTc5NjMwfQ.6qRK5YGrBB5zofabQ093YdYf2IrVoOD2HSMD3OFxOE8",
+  },
+});
